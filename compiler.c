@@ -111,8 +111,9 @@ int sy;//word 的类型
 char token[MAX];
 int token_top;
 int num;//读入的字符串数字转为int
-int cc,ll;
-int lc=-1;//program line;
+int cc,ll,lastcc;
+int lc=-1,lastlc;//program line;
+int errpos;
 char line[MAX];//读取行源代码
 char ch,lastch;//nextch函数的全局变量，存放当前字符
 char key[MAX][MAX] ={"const","int","char","void","main","if","while","switch","case","default","scanf","printf","return"};
@@ -120,6 +121,7 @@ char ksy[MAX][MAX] ={"constsy","intsy","charsy","voidsy","mainsy","ifsy","whiles
 
 int  zerobeginsys[MAX],constbeginsys[MAX],varbeginsys[MAX],parameterbeginsys[MAX],typesbeginsys[MAX],programbeginsys[MAX];
 int compondstatementbeginsys[MAX],statementbeginsys[MAX];
+int funcendsys[MAX],compondstatementendsys[MAX],statementendsys[MAX];
 int  Idbeginsys[MAX],semicommabeginsys[MAX];
 int factorbeginsys[MAX]; 
 int relationbeginsys[MAX];
@@ -127,7 +129,7 @@ int normalparabeginsys[MAX];
 int printfbeginsys[MAX],returnbeginsys[MAX];
 int Rmatrix[MAX][MAX];//每一维表示只有自己存在的一维集合 
 
-int * plusbeginsys(int * s1,int * s2,int * s3);
+void plusbeginsys(int * s1,int * s2,int * s3);
 
 void Setup(){
 	int i = 0;
@@ -136,39 +138,42 @@ void Setup(){
 			Rmatrix[i][i]=1;
 		}
 	}
-	normalparabeginsys[IdSY]=1;
-	normalparabeginsys[LPARSY]=1;
-	normalparabeginsys[PLUSSY]=1;
-	normalparabeginsys[MINUSSY]=1;
-	normalparabeginsys[CharSY] =1;
-	normalparabeginsys[IntSY] =1;
-	normalparabeginsys[RPARSY] =1;
-		
+			
 	factorbeginsys[IdSY]=1;
 	factorbeginsys[LPARSY]=1;
 	factorbeginsys[PLUSSY]=1;
 	factorbeginsys[MINUSSY]=1;
 	factorbeginsys[CharSY] =1;
 	factorbeginsys[IntSY] =1;
-	
+
+//	normalparabeginsys[IdSY]=1;
+//	normalparabeginsys[LPARSY]=1;
+//	normalparabeginsys[PLUSSY]=1;
+//	normalparabeginsys[MINUSSY]=1;
+//	normalparabeginsys[CharSY] =1;
+//	normalparabeginsys[IntSY] =1
+	normalparabeginsys[RPARSY] =1;
+	plusbeginsys(normalparabeginsys,factorbeginsys,normalparabeginsys);
+			
 	returnbeginsys[SEMISY]=1;
-	returnbeginsys[IdSY]=1;
-	returnbeginsys[LPARSY]=1;
-	returnbeginsys[PLUSSY]=1;
-	returnbeginsys[MINUSSY]=1;
-	returnbeginsys[CharSY]=1;
-	returnbeginsys[IntSY]=1;
-//	plusbeginsys(returnbeginsys,factorbeginsys,returnbeginsys);
+	plusbeginsys(returnbeginsys,factorbeginsys,returnbeginsys);
+//	returnbeginsys[IdSY]=1;
+//	returnbeginsys[LPARSY]=1;
+//	returnbeginsys[PLUSSY]=1;
+//	returnbeginsys[MINUSSY]=1;
+//	returnbeginsys[CharSY]=1;
+//	returnbeginsys[IntSY]=1;
 	
 	printfbeginsys[StringSY] =1;
-	printfbeginsys[SEMISY] =1;
-	printfbeginsys[LPARSY] =1;
-	printfbeginsys[IdSY] =1;
-	printfbeginsys[PLUSSY] =1;
-	printfbeginsys[MINUSSY] =1;
-	printfbeginsys[CharSY] =1;
-	printfbeginsys[IntSY] =1;
-//	plusbeginsys(printfbeginsys,factorbeginsys,printfbeginsys);
+	plusbeginsys(factorbeginsys,printfbeginsys,printfbeginsys);
+//	printfbeginsys[SEMISY] =1;
+//	printfbeginsys[LPARSY] =1;
+//	printfbeginsys[IdSY] =1;
+//	printfbeginsys[PLUSSY] =1;
+//	printfbeginsys[MINUSSY] =1;
+//	printfbeginsys[CharSY] =1;
+//	printfbeginsys[IntSY] =1;
+
 	
 	relationbeginsys[EQUSY]=1;
 	relationbeginsys[UNEQUSY]=1;
@@ -189,36 +194,32 @@ void Setup(){
 	statementbeginsys[PRINTFSY]=1;
 	statementbeginsys[RETURNSY]=1;
 	statementbeginsys[SWITCHSY]=1;
-	statementbeginsys[LBRACE]=1;//语句成分可含左右花括号 
-//	statementbeginsys[RBRACE]=1;
-	statementbeginsys[SEMISY]=1;
+	statementbeginsys[LBRACE]=1;
+	statementbeginsys[SEMISY]=1;	
 	
 	compondstatementbeginsys[CONSTSY]=1;
 	compondstatementbeginsys[INTSY]=1;
 	compondstatementbeginsys[CHARSY]=1;
-	compondstatementbeginsys[IdSY]=1;
-	compondstatementbeginsys[IFSY]=1;
-	compondstatementbeginsys[WHILESY]=1;
-	compondstatementbeginsys[INTSY]=1;
-	compondstatementbeginsys[SCANFSY]=1;
-	compondstatementbeginsys[PRINTFSY]=1;
-	compondstatementbeginsys[RETURNSY]=1;
-	compondstatementbeginsys[SWITCHSY]=1;
-	compondstatementbeginsys[RBRACE]=1;//复合语句部分不含左花括号 
-	
-	
+	plusbeginsys(statementbeginsys,compondstatementbeginsys,compondstatementbeginsys);
+//	compondstatementbeginsys[IdSY]=1;
+//	compondstatementbeginsys[IFSY]=1;
+//	compondstatementbeginsys[WHILESY]=1;
+//	compondstatementbeginsys[SCANFSY]=1;
+//	compondstatementbeginsys[PRINTFSY]=1;
+//	compondstatementbeginsys[RETURNSY]=1;
+//	compondstatementbeginsys[SWITCHSY]=1;
+//	compondstatementbeginsys[SEMISY]=1;
+//	compondstatementbeginsys[LBRACE]=1;
+//	compondstatementbeginsys[RBRACE]=1;//复合语句部分不含左花括号 
 	
 	parameterbeginsys[INTSY]=1;
 	parameterbeginsys[CHARSY]=1;
 	parameterbeginsys[RPARSY]=1;
-	parameterbeginsys[IdSY]=1;//参数容错，如果没有类型则默认为int类型处理
 	parameterbeginsys[LBRACE]=1;//容错参数无右括号无内容 
 	
 	typesbeginsys[INTSY]=1;
 	typesbeginsys[CHARSY]=1;
 	typesbeginsys[VOIDSY]=1;	
-	
-    Idbeginsys[IdSY]=1;
     
     semicommabeginsys[SEMISY]=1;
     semicommabeginsys[COMMASY]=1;
@@ -232,9 +233,19 @@ void Setup(){
     programbeginsys[INTSY]=1;
     programbeginsys[CHARSY]=1;
     programbeginsys[VOIDSY]=1;
-//    programbeginsys[IdSY]=1;
 	programbeginsys[EOFSY]=1;
+	
+	funcendsys[VOIDSY]=1;
+	funcendsys[INTSY]=1;
+	funcendsys[CHARSY]=1;
+	
 
+	compondstatementendsys[EOFSY]=1;
+	plusbeginsys(funcendsys,compondstatementendsys,compondstatementendsys);
+	
+	plusbeginsys(statementbeginsys,compondstatementendsys,statementendsys);
+
+	
 	strcpy(key[COMMASY] , ",");
 	strcpy(key[EQUSY] , "==");
 	strcpy(key[SEMISY] , ";");
@@ -289,6 +300,9 @@ void Setup(){
 char get_Char(){
 	lastch =ch;
 	if(cc==ll){
+		if(errpos!=0){
+			errpos = 0;
+		}
 		ll =0 ;
 		cc = 0;
 		while(ch!='\n' && ch != EOF ){
@@ -386,6 +400,8 @@ void error(){
 }
 
 int getsym(){//获取word，将类型存入sy 内容存入token
+	lastcc = cc;
+	lastlc =lc;//晚一回合更新，用于报错时确认位置信息 
 	clear_Token();
 	get_Char();
 	while(ch == ' '|| ch == '\n'||ch =='\t')
@@ -519,7 +535,20 @@ void endskip(){//未设置errpos
 }
 
 void Error(int n){
-	if (n>=0) printf("Error:%d\n",n);
+	if(cc>errpos){
+		errpos = cc +3;
+		if (n>=0) printf("Error line%d loc%d:%d\n",lastlc,lastcc,n);
+		switch(n){
+			case 10:{
+					printf("expect: ; \n");
+				break;
+			}
+			case 31:{
+					printf("expect: =\n");
+				break;
+			}
+		}
+	}
 }
 
 void skip(int* fsys,int n){
@@ -559,7 +588,7 @@ void testsemi(int *fsys){
 
 void constant(int *fsys){
     int sign = 1;
-//    test(constbeginsys,fsys,29);//应是常量
+    test(constbeginsys,fsys,29);//应是常量
     if(constbeginsys[sy]==1){
         printf("This is a constant ");
         if(sy == CharSY){
@@ -578,18 +607,18 @@ void constant(int *fsys){
                 getsym();
             }
             else{
-//            	test(semicommabeginsys,fsys,29);
+            	test(semicommabeginsys,fsys,29);
 			} 
         }
     }
 
 }
 
-void constdec(){//单次常量定义 
+void constdec(int * fsys){//单次常量定义 
         if(sy == INTSY || sy ==CHARSY){
             types = sy;
             getsym();
-//            test(Idbeginsys,programbeginsys,2);//要么是标识符，要么重新开始新的模块 
+            test(Rmatrix[IdSY],fsys,2);//要么是标识符，要么重新开始新的模块 
             while(sy == IdSY){
                 strcpy(id,token);
                 getsym();
@@ -600,16 +629,17 @@ void constdec(){//单次常量定义
                     Error(31);//应是赋值等
                     getsym();
                 }
-                constant(programbeginsys);
+                else Error(31);//容错 不存在等号 
+                constant(fsys);
                 if(sy == COMMASY ||sy ==SEMISY ) {
                         if (sy==SEMISY) printf("This is a const statement\n");
                         getsym();
                 }
-                else skip(programbeginsys,5);//非法符号
+                else skip(fsys,10);//非法符号
             }
         }
         else{
-            skip(programbeginsys,18);//应是类型标识符
+            skip(fsys,18);//应是类型标识符
         }
 
 }
@@ -632,13 +662,11 @@ void variabledeclaration(int *fsys){//编写时间过长 ，可能有较多地方写不清楚
 	}
 	else if(types == CHARSY ){
 		printf("variabledeclaration %s %s\n",ksy[types],id);
-//		getsym(); 
 	}
 	else if(types == INTSY){
 		printf("variabledeclaration %s %s\n",ksy[types],id);
-//		getsym();
 	}	
-//	test(varbeginsys,fsys,5);
+	test(varbeginsys,fsys,5);
 	while(sy == COMMASY ){
 		getsym();
 		int s1[MAX];
@@ -715,14 +743,14 @@ void parameterlist(int * fsys){
 	}
 }
 
-int * plusbeginsys(int * s1,int * s2,int * s3){
+void plusbeginsys(int * s1,int * s2,int * s3){
 	int i=0;
 	for(i= 0;i<MAX;i++){
 		if(s1[i]==1||s2[i]==1){
-			s3[i]==1; 
+			s3[i]=1; 
 		}
 	}
-	return s3; 
+//	return s3; 
 }
 
 
@@ -1016,8 +1044,8 @@ void returnstatement(int *fsys){
 	if(sy == LPARSY){
 		getsym();
 	}
-	else Error(7);
-//	test(returnbeginsys,fsys,5);
+	else if(sy != SEMISY) Error(7);
+	test(returnbeginsys,fsys,5);
 	if(factorbeginsys[sy]==1){
 		element e;
 		e = expression(fsys,e);
@@ -1025,7 +1053,7 @@ void returnstatement(int *fsys){
 			printf("This is return statememt\n");
 			getsym();
 		} 
-		else test(returnbeginsys,fsys,5);
+		else test(statementendsys,fsys,5);
 	}
 	testsemi(fsys); 
 }
@@ -1175,41 +1203,43 @@ void statement(int *fsys){//单个语句处理
 }//end statement 
 
 void compondstatement(int * fsys){//【注意对于函数的复合语句，应当确保有return语句】 
-//	test(compondstatementbeginsys,fsys,5);
-	while(sy == CONSTSY){
-        getsym();
-		constdec();
-//		test(compondstatementbeginsys,fsys,5);
-	}
-	while(sy == INTSY || sy == CHARSY){
-		types = sy;
-		getsym();
-//		test(Rmatrix[IdSY],compondstatementbeginsys,2);
-		if(sy == IdSY){
-			strcpy(id,token);
-			getsym(); 
-			int s2[MAX];
-			memset(s2,0,MAX);
-			plusbeginsys(compondstatementbeginsys,fsys,s2);
-			s2[CONSTSY]=0;
-			variabledeclaration(s2);
-//			test(s2,fsys,5);//非法符号 
+	test(compondstatementbeginsys,fsys,5);
+	if(compondstatementbeginsys[sy]==1){
+		while(sy == CONSTSY){
+	        getsym();
+			constdec(fsys);
+			test(compondstatementbeginsys,fsys,5);
 		}
-	}
-	while(statementbeginsys[sy]==1){
-		int s3[MAX];
-		memset(s3,0,MAX);
-		plusbeginsys(compondstatementbeginsys,fsys,s3);
-		s3[CONSTSY]=0;s3[INTSY]=0;s3[CHARSY]=0;
-		statement(s3);
-	}
-	if(sy == RBRACE){
-		getsym();
-//		test(programbeginsys,programbeginsys,5);//存在疑问，停止集合是这样写么 
-	}
-	else{
-		Error(33);
-//		test(programbeginsys,programbeginsys,5);
+		while(sy == INTSY || sy == CHARSY){
+			types = sy;
+			getsym();
+	//		test(Rmatrix[IdSY],compondstatementbeginsys,2);
+			if(sy == IdSY){
+				strcpy(id,token);
+				getsym(); 
+				int s2[MAX];
+				memset(s2,0,MAX);
+				plusbeginsys(compondstatementbeginsys,fsys,s2);
+				s2[CONSTSY]=0;
+				variabledeclaration(s2);
+	//			test(s2,fsys,5);//非法符号 
+			}
+		}
+		while(statementbeginsys[sy]==1){
+			int s3[MAX];
+			memset(s3,0,MAX);
+			plusbeginsys(compondstatementbeginsys,fsys,s3);
+			s3[CONSTSY]=0;s3[INTSY]=0;s3[CHARSY]=0;
+			statement(s3);
+		}
+		if(sy == RBRACE){
+			getsym();
+	//		test(programbeginsys,programbeginsys,5);//存在疑问，停止集合是这样写么 
+		}
+		else{
+			Error(33);
+	//		test(programbeginsys,programbeginsys,5);
+		}
 	}
 }
 void funcdeclaration(int * fsys){
@@ -1238,32 +1268,33 @@ int main(){
 //    scanf("%s",&datapath);
 //    printf("%s\n",datapath);
 //	freopen(datapath,"r",stdin);//测试文件text
-	freopen("test.txt","r",stdin);//测试文件text
+	freopen("test_const_error.txt","r",stdin);//测试文件text
 	Setup();
     getsym();
     test(Rmatrix[CONSTSY],programbeginsys,-1);
     while(sy == CONSTSY){
         getsym();
-    	constdec();
+    	constdec(programbeginsys);
     	test(programbeginsys,programbeginsys,5);
 	}
+	programbeginsys[CONSTSY]=0;//将const 从程序集合中删除 
 	test(typesbeginsys,programbeginsys,-2);
 	while(sy == INTSY ||sy == CHARSY ||sy == VOIDSY){
 		types = sy;
 		getsym();
 		int s2[MAX];
 		memset(s2,0,MAX);
-		s2[IdSY]=1;s2[MAINSY]=1;
+		s2[IdSY]=1;s2[MAINSY]=1;//主函数或其他 
 		test(s2,programbeginsys,2);
 		if(sy == IdSY){
 			strcpy(id,token);
 			getsym();
 			int s3[MAX];
 			memset(s3,0,MAX);
-			s3[SEMISY]=1;s3[COMMASY]=1;s3[LPARSY]=1;s3[LBRACK]=1;s3[IdSY]=1;
+			s3[SEMISY]=1;s3[COMMASY]=1;s3[LPARSY]=1;s3[LBRACK]=1;s3[IdSY]=1;//参数表或变量定义 
 			test(s3,programbeginsys,5);
-			if(sy == LPARSY){
-				Funcflag = 1; //不允许再读变量 
+			if(sy == LPARSY){ 
+				Funcflag = 1; //进入函数定义，不允许再读变量 
 				funcdeclaration(programbeginsys);
 			}
 			else if(sy == SEMISY||sy ==COMMASY ||sy ==IdSY||sy == LBRACK){
@@ -1273,10 +1304,11 @@ int main(){
 				}
 				else{
 					variabledeclaration(programbeginsys);
+					test(typesbeginsys,programbeginsys,5);
 				}
 				
 			}
-			else test(programbeginsys,programbeginsys,5);
+			else test(typesbeginsys,programbeginsys,5);
 		}
 		else if(sy == MAINSY && types == VOIDSY){
 			getsym();
@@ -1288,13 +1320,13 @@ int main(){
 			else Error(3);
 			if(sy == LBRACE) getsym();
 			else Error(32);
-			
+			programbeginsys[INTSY]=0;programbeginsys[CHARSY]=0;programbeginsys[VOIDSY]=0; //将int char void 从程序后继集合中删去
 			compondstatement(programbeginsys); 
+			test(Rmatrix[EOFSY],programbeginsys,39);
 		}
 	}
-	test(Rmatrix[EOFSY],Rmatrix[EOFSY],-2);
+	test(Rmatrix[EOFSY],Rmatrix[EOFSY],39);
 	printf("This is a program\n");
-	
     return 0;
 }
 
