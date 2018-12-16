@@ -50,8 +50,9 @@
 #define Norefunc 409
 #define Array 410
 #define Para 411
+#define TVAR 412
 #define success 666
-#define MAX 200//定义其他宏
+#define MAX 300//定义其他宏
 
 #define Resvnum 52
 
@@ -61,5 +62,39 @@
 #define smax 1000
 #define dmax 1000
 
+#define VAR 0
+#define Funcdec 1
+#define SET 2
+#define JUMP 3
+#define RET 4
+#define ADD 5
+#define SUB 6
+#define MULT 7
+#define DIV 8
+#define Arrayasg 9
+#define Arrayout 10
+#define Callret 11
+#define Call 12
+#define Npara 13
+#define LITEQU 14
+#define LIT 15
+#define GRTEQU 16
+#define GRT 17
+#define EQUU 18
+#define UNEQU 19
+#define BNZ 20
+#define BNE 21
+#define SCANF 22
+#define PRINTF 23
+#define ASSIGN 24
+#define PULL 25
 
+#define INT "int"
+#define CHAR "char"
+#define VOID "void"
+#define STRING "string"
+#define MAIN "main"
+#define NULLL "-"
+#define ZERO "0"
+#define ONE "1"
 #endif // DEFINE_H_INCLUDED

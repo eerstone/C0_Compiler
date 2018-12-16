@@ -14,4 +14,5 @@ int Key();
 int transNum();
 void error();
 int getsym();
+
 #endif // GETSYM_H_INCLUDED
