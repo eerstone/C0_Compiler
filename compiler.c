@@ -101,6 +101,7 @@ void Setup(){
 	compondstatementbeginsys[CONSTSY]=1;
 	compondstatementbeginsys[INTSY]=1;
 	compondstatementbeginsys[CHARSY]=1;
+	compondstatementbeginsys[RBRACE]=1;
 	plusbeginsys(statementbeginsys,compondstatementbeginsys,compondstatementbeginsys);
 //	compondstatementbeginsys[IdSY]=1;
 //	compondstatementbeginsys[IFSY]=1;
@@ -557,9 +558,9 @@ void test(int s1[],int  s2[],int n){
 void testsemi(int *fsys){
     if(sy == SEMISY) getsym();
     else{
+        Error(10);//应为分号
         if(sy == COLON || sy == COMMASY){
-            Error(10);//应为分号
-            getsym();
+            getsym();//容错
         }
         else test(fsys,zerobeginsys,5);//5号错误表示非法符号，即我也不知道你在这到底写了些啥
     }
@@ -1026,6 +1027,7 @@ element condition(int *fsys,element c){
 		if(factorbeginsys[sy]==1){
 			element e1;
 			e1 = expression(fsys,e1);
+			if(e1.elety==CharSY) Error(16);
 			c.elenum = e1.elenum;
 			strcpy(c.name,e1.name);
 			if(relationbeginsys[sy]==1){
@@ -1035,6 +1037,7 @@ element condition(int *fsys,element c){
 				if(factorbeginsys[sy]==1){
 					element e2;
 					e2 = expression(fsys,e2);
+                    if(e2.elety==CharSY) Error(16);
                     getTvar(c.name);
 					if(relation == LITTLESY){
                         enterDcode(LIT,e1.name,e2.name,c.name);
@@ -1367,6 +1370,10 @@ void statement(int *fsys){//单个语句处理
                  normalparalist(fsys);//不知此处是否会有状态机错误
                  enterDcode(Call,func,NULLL,NULLL);
 			}
+			testsemi(fsys);
+		}
+		else {
+            Error(5);
 			testsemi(fsys);
 		}
 	}
